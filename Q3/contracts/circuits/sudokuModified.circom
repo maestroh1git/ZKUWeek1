@@ -1,4 +1,3 @@
-// [assignment] please copy the entire modified sudoku.circom here
 pragma circom 2.0.3;
 
 include "../node_modules/circomlib-matrix/circuits/matAdd.circom";
@@ -17,25 +16,28 @@ template sudoku() {
     // check whether the solution is zero everywhere the puzzle has values (to avoid trick solution)
 
     component mul = matElemMul(9,9);
+    //  9 by 9 component array to hold the RangeProofs 
     component puzzleProof[9][9];
     component solutionProof[9][9];
-    
-    //[assignment] hint: you will need to initialize your RangeProof components here
-    
+
     for (var i=0; i<9; i++) {
         for (var j=0; j<9; j++) {
-            puzzleProof[i][j] = RangeProof(10);
+
+            // check the puzzle value is inside the 0-9 range
+            puzzleProof[i][j] = RangeProof(32);
+            puzzleProof[i][j].range[0] <== 9;
+            puzzleProof[i][j].range[1] <== 0;
             puzzleProof[i][j].in <== puzzle[i][j];
-            puzzleProof[i][j].range[0] <== 0;
-            puzzleProof[i][j].range[1] <== 9;
-
-            solutionProof[i][j] = RangeProof(10);
+            
+            // check the solution value is inside the 0-9 range
+            solutionProof[i][j] = RangeProof(32);
+            solutionProof[i][j].range[0] <== 9;
+            solutionProof[i][j].range[1] <== 0;
             solutionProof[i][j].in <== solution[i][j];
-            solutionProof[i][j].range[0] <== 0;
-            solutionProof[i][j].range[1] <== 9;
+            
 
-            assert(puzzleProof[i][j].out == 1);
-            assert(solutionProof[i][j].out == 1);
+            // check both solution and puzzle value is 1
+            solutionProof[i][j].out * puzzleProof[i][j].out === 1;
 
             mul.a[i][j] <== puzzle[i][j];
             mul.b[i][j] <== solution[i][j];
